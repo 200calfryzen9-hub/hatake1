@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Personal farm: replace the marker with the owner's Google email before deployment.
+    function owner(uid) {
+      return request.auth != null && request.auth.uid == uid
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'REPLACE_WITH_OWNER_EMAIL';
+    }
+    match /users/{uid}/{collection}/{id} {
+      allow read, write: if owner(uid) && collection in ['fields', 'crops', 'tasks', 'settings'];
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}
